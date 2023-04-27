@@ -8,9 +8,16 @@ import SupportIcon from './icons/IconSupport.vue'
 import { useQuery } from '@vue/apollo-composable'
 import GET_POKEMON_QUERY from '@/apollo/queries/get-pokemon'
 import GET_BERRIES_QUERY from '@/apollo/queries/get-berries'
+import { onUnmounted } from 'vue'
+import localforage from 'localforage'
 
 const { result: pokemonResult, loading: pokemonLoading, error: pokemonError } = useQuery(GET_POKEMON_QUERY, { id: 1 })
 const { result: berriesResult, loading: berriesLoading, error: berriesError } = useQuery(GET_BERRIES_QUERY, { id: 3})
+
+// Example clearing the cache
+onUnmounted(() => {
+  localforage.clear()
+})
 
 </script>
 

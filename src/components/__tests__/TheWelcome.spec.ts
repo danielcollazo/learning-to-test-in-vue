@@ -13,9 +13,13 @@ const pokemonMockResponse = {
   }
 }
 
+const pokemonMockFailureResponse = { errors: [{ message: 'GraphQL Error - Pokemon' }] }
+
 const berriesMockResponse = {
   data: { pokemon_v2_berry: [{ id: 3, name: 'pecha', __typename: 'pokemon_v2_berry' }] }
 }
+
+const berriesMockFailureResponse = { errors: [{ message: 'GraphQL Error - Berry' }] }
 
 describe('Vue Test Utils', () => {
   let wrapper: VueWrapper<any>
@@ -65,7 +69,7 @@ describe('Vue Test Utils', () => {
   })
 })
 
-describe('Testing Library', () => {
+describe('Testing Library - Success', () => {
   let pokemonQueryHandler: Mock<any, any>
   let berriesQueryHandler: Mock<any, any>
 
@@ -98,6 +102,39 @@ describe('Testing Library', () => {
 
     const resultsElement = screen.getByText(/bulbasaur/i)
     expect(resultsElement).toBeInTheDocument()
+    expect(pokemonLoadingText).not.toBeInTheDocument()
+  })
+})
+
+describe('Testing Library - Failures', () => {
+  let pokemonQueryHandler: Mock<any, any>
+  let berriesQueryHandler: Mock<any, any>
+
+  beforeEach(() => {
+    pokemonQueryHandler = vi.fn().mockResolvedValue(pokemonMockFailureResponse)
+    berriesQueryHandler = vi.fn().mockResolvedValue(berriesMockFailureResponse)
+    const mockClient = createMockClient()
+
+    mockClient.setRequestHandler(GET_POKEMON_QUERY, pokemonQueryHandler)
+    mockClient.setRequestHandler(GET_BERRIES_QUERY, berriesQueryHandler)
+
+    render(TheWelcome, {
+      global: {
+        provide: {
+          [DefaultApolloClient]: mockClient
+        }
+      }
+    })
+  })
+
+  it('Renders error element', async () => {
+    const pokemonLoadingText = screen.queryByText('Loading Pokemon...')
+    expect(pokemonLoadingText).toBeInTheDocument()
+
+    await flushPromises()
+
+    const apolloErrorMessage = screen.getAllByText(/ApolloError/i)
+    expect(apolloErrorMessage).toBeTruthy()
     expect(pokemonLoadingText).not.toBeInTheDocument()
   })
 })
